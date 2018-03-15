@@ -3,7 +3,7 @@ var config = require('../config')
 var utils = require('./utils')
 var projectRoot = path.resolve(__dirname, '../')
 var glob = require('glob');
-var entries = getEntry(['./src/module/*.js', './src/module/**/*.js']); // 获得入口js文件
+var entries = getEntry(['./src/module/**/index.js']); // 获得入口js文件
 
 var env = process.env.NODE_ENV
 // check env & config/index.js to decide weither to enable CSS Sourcemaps for the
@@ -85,14 +85,22 @@ function getEntry(globPath) {
   }
   globPath.forEach((itemPath) => {
     glob.sync(itemPath).forEach(function (entry) {
-      basename = path.basename(entry, path.extname(entry));
-      if (entry.split('/').length > 4) {
-        tmp = entry.split('/').splice(-3);
-        pathname = tmp.splice(0, 1) + '/' + basename; // 正确输出js和html的路径
-        entries[pathname] = entry;
+      let parts = entry.split('/');
+      let module = parts[parts.length - 2];
+
+      if ('index' === module) {
+        entries['index'] = entry;
       } else {
-        entries[basename] = entry;
+        entries[`${module}/index`] = entry;
       }
+      // basename = path.basename(entry, path.extname(entry));
+      // if (entry.split('/').length > 4) {
+      //   tmp = entry.split('/').splice(-3);
+      //   pathname = tmp.splice(0, 1) + '/' + basename; // 正确输出js和html的路径
+      //   entries[pathname] = entry;
+      // } else {
+      //   entries[basename] = entry;
+      // }
     });
   });
   return entries;
